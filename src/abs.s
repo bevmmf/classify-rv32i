@@ -1,6 +1,19 @@
 .globl abs
 
+.data
+number_test:.word -5
 .text
+.globl main
+main:
+    la a0,number_test  
+    jal abs
+    add s0,a0,x0
+    li a0, 1      # system call：print integer
+    lw a1,0(s0)
+    ecall
+    # end
+    li a0, 10           
+    ecall
 # =================================================================
 # FUNCTION: Absolute Value Converter
 #
@@ -16,13 +29,15 @@
 # =================================================================
 abs:
     # Prologue
-    ebreak
     # Load number from memory
+    
     lw t0 0(a0)
+    ebreak
     bge t0, zero, done
-
     # TODO: Add your own implementation
-
+    sub t1,x0,t0  #t1=-t0
+    sw t1,0(a0)  #store t0 to a0
+    jr ra
 done:
     # Epilogue
     jr ra
