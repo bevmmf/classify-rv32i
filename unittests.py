@@ -437,7 +437,7 @@ class TestReadMatrix(unittest.TestCase):
         t = AssemblyTest(self, "read_matrix.s")
         # load address to the name of the input file into register a0
         t.input_read_filename("a0", input_file)
-
+        
         # allocate space to hold the rows and cols output parameters
         rows = t.array([-1])
         cols = t.array([-1])

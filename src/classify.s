@@ -167,6 +167,27 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+          # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    addi a0,t2,0
+    #
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -204,6 +225,26 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s8)
     # mul a1, t0, t1 # length of h array and set it as second argument
+         # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    #
+    addi a1,t2,0 
     # FIXME: Replace 'mul' with your own implementation
     
     jal relu
@@ -227,6 +268,27 @@ classify:
     lw t0, 0(s3)
     lw t1, 0(s6)
     # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+      # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+     addi a0,t2,0
+    #
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -286,7 +348,27 @@ classify:
     mv a0, s10 # load o array into first arg
     lw t0, 0(s3)
     lw t1, 0(s6)
-    mul a1, t0, t1 # load length of array into second arg
+    #mul a1, t0, t1 # load length of array into second arg
+         # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    addi a1,t2,0
+    #
     # FIXME: Replace 'mul' with your own implementation
     
     jal argmax
@@ -384,3 +466,18 @@ error_args:
 error_malloc:
     li a0, 26
     j exit
+#
+mul:
+	addi t0,x0,0 #i(t0)=0
+    addi t1,x0,0 #mul_value(t1)=0
+loop_mul:
+    bge t0,a1,done_loop_mul
+    add t1,t1,a0  #t1+=a0
+    addi t0,t0,1  #i++
+    j loop_mul
+done_loop_mul:
+	addi a0,t1,0 
+	jr ra
+
+
+#
