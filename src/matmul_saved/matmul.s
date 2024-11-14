@@ -168,8 +168,26 @@ inner_loop_start:
     #1_row_base_address(m1[i_row][])=1_base_address+[4(bytes)*i]*m
     slli t0,s0,2 #i*4
     
-    mul t2,t0,a2 #m*(4i) #a2 not sure still 1_col
-   
+    #mul t2,t0,a2 #m*(4i) #a2 not sure still 1_col
+    # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,a2,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+    # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    #
     #
     
     add t2,s3,t2 #1_address_m1[i_row](1_pointer)=1_base_address+[4(bytes)*i]*m=t0
@@ -200,8 +218,26 @@ inner_loop_start:
     addi sp, sp, 24
     # store the value in matrix3(D[i][j])
     
-    mul t6,s0,a5  #t1=i*L
-    
+    #mul t6,s0,a5  #t1=i*L
+    # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,s0,0          #input1_mul 
+    addi a1,a5,0		  #input2_mul
+    jal mul
+    addi t6,a0,0          #t6=mul_value
+    # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    #
     #
     
     add t6,t6,s1  #t1=j+i*L
@@ -264,9 +300,25 @@ loop_start:
     slli t4,t1,2 #t4=4*j
     add t4,a1,t4 #t4=array2 pointer+4*j(address+4*j)
     lw t5,0(t4) #t5=load array2[j] value from address
-    mul t6,t3,t5
-    #mul fixed
-    
+    #mul
+    # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,t3,0          #input1_mul 
+    addi a1,t5,0		  #input2_mul
+    jal mul
+    addi t6,a0,0          #t6=mul_value
+    # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
     #
     add s0,s0,t6 #s0(dot product value)+=t6
     add t0,t0,s3 #i++ stride1

@@ -154,7 +154,7 @@ classify:
     addi sp, sp, 12
 
     # Compute h = matmul(m0, input)
-    addi sp, sp, -28
+    addi sp, sp, -48
     
     sw a0, 0(sp)
     sw a1, 4(sp)
@@ -166,7 +166,28 @@ classify:
     
     lw t0, 0(s3)
     lw t1, 0(s8)
-     mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+          # Prologue - caller_saved 
+    # addi sp, sp, -20       # create an area in stack
+    sw ra, 28(sp)		  # save ra
+    sw a0, 32(sp)         # save a0
+    sw a1, 36(sp)          # save a1
+    sw t0, 40(sp)          # save t0
+    sw t1, 44(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 44(sp)          # reload t1
+    lw t0, 40(sp)          # reload t0
+    lw a1, 36(sp)          # reload a1
+    lw a0, 32(sp)          # reload a0
+    lw ra, 28(sp)          # reload ra 
+    #addi sp, sp, 20        # release the area in stack
+    addi a0,t2,0
+    #
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -192,10 +213,10 @@ classify:
     lw a5, 20(sp)
     lw a6, 24(sp)
     
-    addi sp, sp, 28
+    addi sp, sp, 48
     
     # Compute h = relu(h)
-    addi sp, sp, -8
+    addi sp, sp, -28
     
     sw a0, 0(sp)
     sw a1, 4(sp)
@@ -203,7 +224,29 @@ classify:
     mv a0, s9 # move h to the first argument
     lw t0, 0(s3)
     lw t1, 0(s8)
-     mul a1, t0, t1 # length of h array and set it as second argument
+    # mul a1, t0, t1 # length of h array and set it as second argument
+   
+         # Prologue - caller_saved 
+    # addi sp, sp, -20       # create an area in stack
+    sw ra, 8(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 16(sp)          # save a1
+    sw t0, 20(sp)          # save t0
+    sw t1, 24(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 24(sp)          # reload t1
+    lw t0, 20(sp)          # reload t0
+    lw a1, 16(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 8(sp)          # reload ra 
+    #addi sp, sp, 20        # release the area in stack
+    #
+    addi a1,t2,0 
     # FIXME: Replace 'mul' with your own implementation
     
     jal relu
@@ -211,10 +254,10 @@ classify:
     lw a0, 0(sp)
     lw a1, 4(sp)
     
-    addi sp, sp, 8
+    addi sp, sp, 28
     
     # Compute o = matmul(m1, h)
-    addi sp, sp, -28
+    addi sp, sp, -48
     
     sw a0, 0(sp)
     sw a1, 4(sp)
@@ -226,7 +269,28 @@ classify:
     
     lw t0, 0(s3)
     lw t1, 0(s6)
-     mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    # mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+      # Prologue - caller_saved 
+    #addi sp, sp, -20       # create an area in stack
+    sw ra, 28(sp)		  # save ra
+    sw a0, 32(sp)         # save a0
+    sw a1, 36(sp)          # save a1
+    sw t0, 40(sp)          # save t0
+    sw t1, 44(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 44(sp)          # reload t1
+    lw t0, 40(sp)          # reload t0
+    lw a1, 36(sp)          # reload a1
+    lw a0, 32(sp)          # reload a0
+    lw ra, 28(sp)          # reload ra 
+    #addi sp, sp, 20        # release the area in stack
+     addi a0,t2,0
+    #
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -252,7 +316,7 @@ classify:
     lw a5, 20(sp)
     lw a6, 24(sp)
     
-    addi sp, sp, 28
+    addi sp, sp, 48
     
     # Write output matrix o
     addi sp, sp, -16
@@ -277,7 +341,7 @@ classify:
     addi sp, sp, 16
     
     # Compute and return argmax(o)
-    addi sp, sp, -12
+    addi sp, sp, -32
     
     sw a0, 0(sp)
     sw a1, 4(sp)
@@ -286,7 +350,27 @@ classify:
     mv a0, s10 # load o array into first arg
     lw t0, 0(s3)
     lw t1, 0(s6)
-    mul a1, t0, t1 # load length of array into second arg
+    #mul a1, t0, t1 # load length of array into second arg
+         # Prologue - caller_saved 
+    #addi sp, sp, -20       # create an area in stack
+    sw ra, 12(sp)		  # save ra
+    sw a0, 16(sp)         # save a0
+    sw a1, 20(sp)          # save a1
+    sw t0, 24(sp)          # save t0
+    sw t1, 28(sp)          # save t1
+    addi a0,t0,0          #input1_mul 
+    addi a1,t1,0		  #input2_mul
+    jal mul
+    addi t2,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 28(sp)          # reload t1
+    lw t0, 24(sp)          # reload t0
+    lw a1, 20(sp)          # reload a1
+    lw a0, 16(sp)          # reload a0
+    lw ra, 12(sp)          # reload ra 
+    #addi sp, sp, 20        # release the area in stack
+    addi a1,t2,0
+    #
     # FIXME: Replace 'mul' with your own implementation
     
     jal argmax
@@ -297,7 +381,7 @@ classify:
     lw a1, 4(sp)
     lw a2, 8(sp)
     
-    addi sp, sp 12
+    addi sp, sp 32
     
     mv a0, t0
 
@@ -384,3 +468,18 @@ error_args:
 error_malloc:
     li a0, 26
     j exit
+#
+mul:
+	addi t0,x0,0 #i(t0)=0
+    addi t1,x0,0 #mul_value(t1)=0
+loop_mul:
+    bge t0,a1,done_loop_mul
+    add t1,t1,a0  #t1+=a0
+    addi t0,t0,1  #i++
+    j loop_mul
+done_loop_mul:
+	addi a0,t1,0 
+	jr ra
+
+
+#

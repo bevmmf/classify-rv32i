@@ -60,8 +60,27 @@ write_matrix:
 
     li t0, 2
     bne a0, t0, fwrite_error
-
-     mul s4, s2, s3   # s4 = total elements
+    
+    # mul s4, s2, s3   # s4 = total elements
+       # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw ra, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t0, 4(sp)          # save t0
+    sw t1, 0(sp)          # save t1
+    addi a0,s3,0          #input1_mul 
+    addi a1,s2,0		  #input2_mul
+    jal mul
+    addi s4,a0,0          #t6=mul_value
+        # Epilogue - caller_reload
+    lw t1, 0(sp)          # reload t1
+    lw t0, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw ra, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    #
     # FIXME: Replace 'mul' with your own implementation
 
     # write matrix data to file
@@ -113,3 +132,15 @@ error_exit:
     lw s4, 20(sp)
     addi sp, sp, 44
     j exit
+#
+mul:
+	addi t0,x0,0 #i(t0)=0
+    addi t1,x0,0 #mul_value(t1)=0
+loop_mul:
+    bge t0,a1,done_loop_mul
+    add t1,t1,a0  #t1+=a0
+    addi t0,t0,1  #i++
+    j loop_mul
+done_loop_mul:
+	addi a0,t1,0 
+	jr ra
