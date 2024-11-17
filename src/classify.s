@@ -166,7 +166,19 @@ classify:
     
     lw t0, 0(s3)
     lw t1, 0(s8)
-     mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    #mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+    #mul fixed
+          # Prologue - caller_saved 
+    addi sp, sp, -4       # create an area in stack
+    sw a1, 0(sp)          # 
+    addi a0,t0,0
+    addi a1,t1,0
+    jal mul
+    addi a0,a0,0
+          # Epilogue - caller_reload
+    lw a1, 0(sp)          # 
+    addi sp, sp, 4        # release the area in stack
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -203,9 +215,21 @@ classify:
     mv a0, s9 # move h to the first argument
     lw t0, 0(s3)
     lw t1, 0(s8)
-     mul a1, t0, t1 # length of h array and set it as second argument
+    # mul a1, t0, t1 # length of h array and set it as second argument
     # FIXME: Replace 'mul' with your own implementation
+    #mul fixed
+        # Prologue - caller_saved 
+    addi sp, sp, -4       # create an area in stack
+    sw a0, 0(sp)         # save a0
     
+    addi a0,t0,0
+    addi a1,t1,0
+    jal mul
+    addi a1,a0,0
+        # Epilogue - caller_reload
+    lw a0, 0(sp)          # reload a0
+    addi sp, sp, 4        # release the area in stack
+    #
     jal relu
     
     lw a0, 0(sp)
@@ -226,7 +250,20 @@ classify:
     
     lw t0, 0(s3)
     lw t1, 0(s6)
-     mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+     #mul a0, t0, t1 # FIXME: Replace 'mul' with your own implementation
+     #mul fixed
+        # Prologue - caller_saved 
+    addi sp, sp, -4       # create an area in stack
+    sw a1, 0(sp)         # save a0
+    
+    addi a0,t0,0
+    addi a1,t1,0
+    jal mul
+    addi a0,a0,0
+        # Epilogue - caller_reload
+    lw a1, 0(sp)          # reload a0
+    addi sp, sp, 4        # release the area in stack
+    #
     slli a0, a0, 2
     jal malloc 
     beq a0, x0, error_malloc
@@ -288,7 +325,18 @@ classify:
     lw t1, 0(s6)
     mul a1, t0, t1 # load length of array into second arg
     # FIXME: Replace 'mul' with your own implementation
+        # Prologue - caller_saved 
+    addi sp, sp, -4       # create an area in stack
+    sw a0, 0(sp)         # save a0
     
+    addi a0,t0,0
+    addi a1,t1,0
+    jal mul
+    addi a1,a0,0
+        # Epilogue - caller_reload
+    lw a0, 0(sp)          # reload a0
+    addi sp, sp, 4        # release the area in stack
+    #
     jal argmax
     
     mv t0, a0 # move return value of argmax into t0
@@ -384,3 +432,61 @@ error_args:
 error_malloc:
     li a0, 26
     j exit
+
+#mul(a0,a1,t4,t5,t6)
+mul:
+	
+    # Prologue
+    #
+    li t6, 0   #t6=value_mul 
+    li t5, 0   #t5=sign_mul 
+    xor t5,a0,a1  #tell  if same sign or diff sign(same=0)(diff=1)
+    srli t5,t5,31 #take the sign bit 
+    #abs(rs2)
+    mv t4,a0 #save a0
+    mv a0,a1
+    #caller_saved_pro
+    addi sp,sp,-4
+    sw ra,0(sp)
+    #
+    jal abs 
+    mv a1,a0 #a1=abs(rs2)
+    #abs(rs1)
+    mv a0,t4
+    jal abs  #a0=abs(rs1)
+    #caller_saved_epi
+    lw ra,0(sp)
+    addi sp,sp,4
+    #
+    li t4,0    #i(t4)=0
+	beq t5,x0,same_loop_start #if the value_mul is postive
+oppo_loop_start:
+    #mul_value(t6)=0
+    bge t4,a1,oppo_loop_end
+    add t6,t6,a0  #t6+=a0
+    addi t4,t4,1  #i++
+    j oppo_loop_start
+oppo_loop_end:
+	sub a0,x0,t6 #a0=-t6
+    # epilogue
+	jr ra	
+same_loop_start:
+    #mul_value(t6)=0
+    bge t4,a1,same_loop_end
+    add t6,t6,a0  #t6+=a0
+    addi t4,t4,1  #i++
+    j same_loop_start
+same_loop_end:
+	addi a0,t6,0 
+    # epilogue
+	jr ra	
+
+#abs
+#Args:
+	#a0 (int )value
+abs:
+    bge a0, zero, positive_done
+    sub a0,x0,a0  #t1=-t0
+    jr ra
+positive_done:
+    jr ra

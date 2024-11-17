@@ -1,5 +1,5 @@
 .globl dot
-.globl mul
+
 
 .data
 array1:.word 1,2,3,4,5,6,7,8,9 # array1_test
@@ -55,11 +55,11 @@ main:
 dot:
 	# Prologue - callee_saved
     addi sp, sp, -20       # create an area in stack
-    sw ra, 16(sp)
-    sw s0, 12(sp)		  # save s0
+    sw ra, 0(sp)
+    sw s0, 4(sp)		  # save s0
     sw s2, 8(sp)		  # save s2
-    sw s3, 4(sp)		  # save s3
-    sw s4, 0(sp)		  # save s4
+    sw s3, 12(sp)		  # save s3
+    sw s4, 16(sp)		  # save s4
     
     #
     li t0, 1
@@ -86,9 +86,25 @@ loop_start:
     slli t4,t1,2 #t4=4*j
     add t4,a1,t4 #t4=array2 pointer+4*j(address+4*j)
     lw t5,0(t4) #t5=load array2[j] value from address
-    mul t6,t3,t5
+    #mul t6,t3,t5
     #mul fixed
-    
+      # Prologue - caller_saved 
+    addi sp, sp, -20       # create an area in stack
+    sw t4, 16(sp)		  # save ra
+    sw a0, 12(sp)         # save a0
+    sw a1, 8(sp)          # save a1
+    sw t5, 4(sp)          # save t0
+    addi a0,t3,0
+    addi a1,t5,0
+    jal mul
+    addi t6,a0,0
+    # Epilogue - caller_reload
+    lw t5, 4(sp)          # reload t0
+    lw a1, 8(sp)          # reload a1
+    lw a0, 12(sp)          # reload a0
+    lw t4, 16(sp)          # reload ra 
+    addi sp, sp, 20        # release the area in stack
+    #
     #
     add s0,s0,t6 #s0(dot product value)+=t6
     add t0,t0,s3 #i++ stride1
@@ -97,11 +113,11 @@ loop_start:
 loop_end:
     addi a0, s0 ,0 #a0(output)=t0
     # Epilogue - callee_reload
- 	lw s4, 0(sp)          # reload s0
-    lw s3, 4(sp)          # reload s0
+ 	lw s4, 16(sp)          # reload s0
+    lw s3, 12(sp)          # reload s0
     lw s2, 8(sp)          # reload s0
-    lw s0, 12(sp)          # reload s0
-    lw ra, 16(sp)
+    lw s0, 4(sp)          # reload s0
+    lw ra, 0(sp)
 
     addi sp, sp, 20        # release the area in stack
     #
@@ -113,28 +129,72 @@ error_terminate:
     li a1, 37
     ecall
     
-    j exit
+    j exit_dot
 
 set_error_36:
     li a0, 17
     li a1, 36
     ecall
-    j exit
-exit:
+    j exit_dot
+exit_dot:
 	li a0, 10 
     ecall
-#subfunction1:mul
-#arguments:
-# a0=number_1   ex:2
-# a1=number_2   ex:3
+
+
+#mul(a0,a1,t4,t5,t6)
 mul:
-	addi t0,x0,0 #i(t0)=0
-    addi t1,x0,0 #mul_value(t1)=0
-loop_mul:
-    bge t0,a1,done_loop_mul
-    add t1,t1,a0  #t1+=a0
-    addi t0,t0,1  #i++
-    j loop_mul
-done_loop_mul:
-	addi a0,t1,0 
-	jr ra
+	
+    # Prologue
+    #
+    li t6, 0   #t6=value_mul 
+    li t5, 0   #t5=sign_mul 
+    xor t5,a0,a1  #tell  if same sign or diff sign(same=0)(diff=1)
+    srli t5,t5,31 #take the sign bit 
+    #abs(rs2)
+    mv t4,a0 #save a0
+    mv a0,a1
+    #caller_saved_pro
+    addi sp,sp,-4
+    sw ra,0(sp)
+    #
+    jal abs 
+    mv a1,a0 #a1=abs(rs2)
+    #abs(rs1)
+    mv a0,t4
+    jal abs  #a0=abs(rs1)
+    #caller_saved_epi
+    lw ra,0(sp)
+    addi sp,sp,4
+    #
+    li t4,0    #i(t4)=0
+	beq t5,x0,same_loop_start #if the value_mul is postive
+oppo_loop_start:
+    #mul_value(t6)=0
+    bge t4,a1,oppo_loop_end
+    add t6,t6,a0  #t6+=a0
+    addi t4,t4,1  #i++
+    j oppo_loop_start
+oppo_loop_end:
+	sub a0,x0,t6 #a0=-t6
+    # epilogue
+	jr ra	
+same_loop_start:
+    #mul_value(t6)=0
+    bge t4,a1,same_loop_end
+    add t6,t6,a0  #t6+=a0
+    addi t4,t4,1  #i++
+    j same_loop_start
+same_loop_end:
+	addi a0,t6,0 
+    # epilogue
+	jr ra	
+
+#abs
+#Args:
+	#a0 (int )value
+abs:
+    bge a0, zero, positive_done
+    sub a0,x0,a0  #t1=-t0
+    jr ra
+positive_done:
+    jr ra

@@ -29,15 +29,21 @@ main:
 # =================================================================
 abs:
     # Prologue
+    addi sp,sp,-4
+    sw ra,0(sp)
     # Load number from memory
-    
     lw t0 0(a0)
-    ebreak
+    
     bge t0, zero, done
     # TODO: Add your own implementation
     sub t1,x0,t0  #t1=-t0
     sw t1,0(a0)  #store t0 to a0
+     # Epilogue
+    lw ra,0(sp)
+    addi sp,sp,4
     jr ra
 done:
     # Epilogue
+    lw ra,0(sp)
+    addi sp,sp,4
     jr ra
