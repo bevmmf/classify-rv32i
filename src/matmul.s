@@ -61,7 +61,7 @@ main:
     jal print_array
   
     # end
-    li a0, 10      # system call�Gquit
+    li a0, 10      # system call:quit
     ecall
 # =======================================================
 # FUNCTION: Matrix Multiplication Implementation
@@ -262,7 +262,7 @@ exit:
 
 
 
-# subfunction 2:print_array (use t0~t2�Bt5~t6�Ba0~a1)
+# subfunction 2:print_array (t0~t2,t5~t6,a0~a1)
 print_array:
     mv t6,a0 #array pointer in t6
     mv t5,a1 #size in t5
@@ -289,8 +289,7 @@ print_array:
      done_print:
          ret  
   
-# subfunction 3:mul (use:t0�Bt1�Ba0�Ba1)
-#mul(a0,a1,t4,t5,t6)
+# subfunction 3:mul (a0,a1,t4,t5,t6)
 mul:
 	
     # Prologue

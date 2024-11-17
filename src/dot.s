@@ -66,7 +66,7 @@ dot:
     blt a2, t0, error_terminate  
     blt a3, t0, error_terminate   
     blt a4, t0, error_terminate
-    #save a2、a3、a4
+    #save a2,a3,a4
 	addi s2,a2,0
     addi s3,a3,0
     addi s4,a4,0
@@ -77,7 +77,7 @@ dot:
 loop_start:
     bge t0, s2, loop_end
     # TODO: Add your own implementation
-	  # get the elements in array1、array2
+	  # get the elements in array1,array2
     #load array1[i] value
     slli t2,t0,2 #t2=4*i (shift for constant mutiplication)
     add t2,a0,t2 #t2=array1 pointer+4*i(address+4*i)
